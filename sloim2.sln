@@ -1,0 +1,19 @@
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "sloim2", "sloim2.csproj", "{538FD2E1-E419-477D-BE63-3115DEEF9B7B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+	Debug|Any CPU = Debug|Any CPU
+	ExportDebug|Any CPU = ExportDebug|Any CPU
+	ExportRelease|Any CPU = ExportRelease|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{538FD2E1-E419-477D-BE63-3115DEEF9B7B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{538FD2E1-E419-477D-BE63-3115DEEF9B7B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{538FD2E1-E419-477D-BE63-3115DEEF9B7B}.ExportDebug|Any CPU.ActiveCfg = ExportDebug|Any CPU
+		{538FD2E1-E419-477D-BE63-3115DEEF9B7B}.ExportDebug|Any CPU.Build.0 = ExportDebug|Any CPU
+		{538FD2E1-E419-477D-BE63-3115DEEF9B7B}.ExportRelease|Any CPU.ActiveCfg = ExportRelease|Any CPU
+		{538FD2E1-E419-477D-BE63-3115DEEF9B7B}.ExportRelease|Any CPU.Build.0 = ExportRelease|Any CPU
+	EndGlobalSection
+EndGlobal

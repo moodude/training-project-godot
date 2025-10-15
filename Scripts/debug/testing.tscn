@@ -1,0 +1,19 @@
+[gd_scene load_steps=3 format=3 uid="uid://dye3567vuc7td"]
+
+[ext_resource type="PackedScene" uid="uid://du6ebd2wpwyr" path="res://Scenes/Player.tscn" id="1_q4ljt"]
+[ext_resource type="PackedScene" uid="uid://dx7f0sqf6cltl" path="res://Scenes/block.tscn" id="2_wrpkt"]
+
+[node name="Testing" type="Node2D"]
+
+[node name="Player" parent="." instance=ExtResource("1_q4ljt")]
+position = Vector2(341, 260)
+
+[node name="Block" parent="." instance=ExtResource("2_wrpkt")]
+position = Vector2(390, 318)
+
+[node name="Block2" parent="." instance=ExtResource("2_wrpkt")]
+position = Vector2(634, 71)
+
+[node name="Block3" parent="." instance=ExtResource("2_wrpkt")]
+position = Vector2(1004, 231)
+scale = Vector2(0.58, 0.695)

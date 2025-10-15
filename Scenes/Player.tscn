@@ -1,0 +1,86 @@
+[gd_scene load_steps=8 format=3 uid="uid://du6ebd2wpwyr"]
+
+[ext_resource type="Script" path="res://Scripts/Player/Player.cs" id="1_qtpms"]
+[ext_resource type="PackedScene" uid="uid://c5x05kpjkukll" path="res://Scenes/hook.tscn" id="5_2nia0"]
+[ext_resource type="Script" path="res://Scenes/HookRadius.cs" id="6_nansh"]
+[ext_resource type="Script" path="res://Scripts/Player/RayCast/RayCastManager.cs" id="7_74v4k"]
+
+[sub_resource type="CanvasTexture" id="CanvasTexture_kbuaw"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_03a7t"]
+radius = 52.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_vumrj"]
+radius = 335.024
+
+[node name="Player" type="Area2D"]
+self_modulate = Color(0.0352941, 0.596078, 0.717647, 1)
+collision_layer = 2
+collision_mask = 17
+script = ExtResource("1_qtpms")
+metadata/_edit_group_ = true
+
+[node name="Playersprite" type="Sprite2D" parent="."]
+modulate = Color(0, 0.352941, 0.376471, 1)
+scale = Vector2(92.5, 68.5)
+texture = SubResource("CanvasTexture_kbuaw")
+
+[node name="CollisionBox" type="CollisionShape2D" parent="."]
+visible = false
+shape = SubResource("CircleShape2D_03a7t")
+
+[node name="Hook" parent="." instance=ExtResource("5_2nia0")]
+
+[node name="HookRadius" type="Area2D" parent="."]
+visible = false
+collision_layer = 8
+collision_mask = 4
+script = ExtResource("6_nansh")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HookRadius"]
+self_modulate = Color(0.960784, 0.6, 1, 1)
+show_behind_parent = true
+z_index = -1
+shape = SubResource("CircleShape2D_vumrj")
+one_way_collision_margin = 5.0
+
+[node name="RayCastManager" type="Node2D" parent="."]
+script = ExtResource("7_74v4k")
+
+[node name="RayCastLeft" type="RayCast2D" parent="RayCastManager"]
+self_modulate = Color(0.75, 0.24, 0.614, 1)
+scale = Vector2(1.1596, -42.4573)
+target_position = Vector2(-50, 0)
+collision_mask = 17
+hit_from_inside = true
+collide_with_areas = true
+collide_with_bodies = false
+
+[node name="RayCastRight" type="RayCast2D" parent="RayCastManager"]
+self_modulate = Color(0.75, 0.24, 0.614, 1)
+scale = Vector2(1.1596, -42.4573)
+target_position = Vector2(50, 0)
+collision_mask = 17
+hit_from_inside = true
+collide_with_areas = true
+collide_with_bodies = false
+
+[node name="RayCastDown" type="RayCast2D" parent="RayCastManager"]
+self_modulate = Color(0.75, 0.24, 0.614, 1)
+rotation = -3.14159
+scale = Vector2(68.447, -3.976)
+target_position = Vector2(0, 14.571)
+collision_mask = 17
+hit_from_inside = true
+collide_with_areas = true
+collide_with_bodies = false
+
+[node name="RayCastUp" type="RayCast2D" parent="RayCastManager"]
+self_modulate = Color(0.75, 0.24, 0.614, 1)
+rotation = -3.14159
+scale = Vector2(68.447, -3.976)
+target_position = Vector2(0, -14.571)
+collision_mask = 17
+hit_from_inside = true
+collide_with_areas = true
+collide_with_bodies = false

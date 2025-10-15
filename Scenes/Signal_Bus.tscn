@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://bxeumomris1ml"]
+
+[ext_resource type="Script" path="res://Scripts/SignalBus.cs" id="1_cfsup"]
+
+[node name="Signal_Bus" type="Node"]
+script = ExtResource("1_cfsup")
