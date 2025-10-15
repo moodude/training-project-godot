@@ -34,16 +34,7 @@ public partial class StateManager : Node
     /// Called every frame by Godot. Updates the current state if one is set.
     /// </summary>
     /// <param name="delta">The time elapsed since the last frame</param>
-    public override void _Process(double delta)
-    {
-        if (entityCurrentState is null)
-        {
-            GD.PrintErr("UpdateState is not runnig because current State is null");
-            return;
-        }
-        UpdateState(delta);//Brauch ich das? Ruft das UpdateState nur zweimal auf?
-    }
-
+   
     #endregion
 
     #region Public Methods

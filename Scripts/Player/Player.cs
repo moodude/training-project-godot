@@ -40,8 +40,8 @@ public partial class Player : Node2D, IEntity
     public float gravity = 2f;
     [Export]
     public int MaxHealth { get; set; } = 30;
-    SignalBus DamageSignal;
-    SignalBus RespawnSignal;
+    SignalBus signalBus;
+    
 
 
     #endregion
@@ -50,10 +50,9 @@ public partial class Player : Node2D, IEntity
     #region LifeCycle
     public override void _Ready()
     {
-        DamageSignal = GetNode<SignalBus>("/root/SignalBus");
-        DamageSignal.Damage += TakeDamage;
-        RespawnSignal = GetNode<SignalBus>("/root/SignalBus");
-        RespawnSignal.Respawn += Respawn;
+        signalBus = GetNode<SignalBus>("/root/SignalBus");
+        signalBus.Damage += TakeDamage;
+        signalBus.Respawn += Respawn;
         rayCastManager = GetNode<RayCastManager>("RayCastManager");
 
         InitState();

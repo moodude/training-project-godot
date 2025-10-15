@@ -2,7 +2,8 @@ using Godot;
 using System;
 
 /// <summary>
-/// Represents a game entity that can move, take damage and interact with the world.
+/// Represents a game entity that can move, take damage and interact with the world. 
+/// It defindes the physical stats. The Data.
 /// </summary>
 public interface IEntity
 {
