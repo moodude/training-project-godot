@@ -1,21 +1,28 @@
 using Godot;
 using System;
 using System.Collections.Generic;
-using System.Reflection.Metadata;
 
 public partial class Player : Node2D, IEntity
 {
     #region Fields
     private StateManager stateManager;
-    private IEntityState initalState => new GroundState();
+    private IEntityState initalState => new GroundState(); //überprüfe ob das notwendig ist später
     private List<RayCast2D> collidingRays;
     private RayCastManager rayCastManager;
+
     #endregion
 
     #region Interface IEntity Implementiation
 
     public Vector2 Velocity { get; set; }
     public int CurrentHealth { get; set; }
+
+    public float SpeedMulti { get; set; } = 150;
+
+    public float JumpForce { get; set; } = 500;
+
+    public float BaseGravity { get; set; } = 50;
+    public float CurrentGravity { get; set; }
 
     // Expression-bodied properties are shorthand for simple get methods
     // They allow you to directly return a value based on a single expression.
@@ -34,10 +41,7 @@ public partial class Player : Node2D, IEntity
 
 
     #region Properties
-    [Export]
-    public float speed = 3f;
-    [Export]
-    public float gravity = 2f;
+    
     [Export]
     public int MaxHealth { get; set; } = 30;
     SignalBus signalBus;
@@ -62,11 +66,11 @@ public partial class Player : Node2D, IEntity
 
     public override void _PhysicsProcess(double delta)
     {
+        Position += Velocity * (float)delta;
         collidingRays = rayCastManager.GetDirectionRays();
         stateManager.UpdateState(delta);
-        GD.Print($"Velocity: {Velocity}");
-        Position += new Vector2(Velocity.X*speed, Velocity.Y * gravity) * (float)delta;
-    
+        //GD.Print($"Velocity: {Velocity}");
+        
     }
 
     #endregion

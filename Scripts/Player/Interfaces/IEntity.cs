@@ -6,7 +6,20 @@ using System;
 /// It defindes the physical stats. The Data.
 /// </summary>
 public interface IEntity
-{
+{   
+    /// <summary>
+    /// Gets or sets the jumpforce of the entity.
+    /// </summary>
+    float JumpForce { get; set; }
+    float BaseGravity { get; set; }
+    /// <summary>
+    /// Gets or sets the gravity value of the entity.
+    /// </summary>
+    float CurrentGravity { get; set; }
+    /// <summary>
+    /// Gets or sets the speed multiplier of the entity.
+    /// </summary>
+    float SpeedMulti { get; set; }
     /// <summary>
     /// Gets or sets the current velocity of the entity.
     /// </summary>

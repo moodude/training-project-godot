@@ -3,7 +3,7 @@ using System;
 /// <summary>
 /// Manages and transtitons between the state of a given <see cref= "IEntity"/> 
 /// </summary>
-public partial class StateManager : Node
+public partial class StateManager
 {
     #region Fields
 
