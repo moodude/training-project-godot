@@ -9,12 +9,13 @@ Here I am exploring and learning more about **coding**, **object-oriented progra
 I started by taking the CS50 course and moved into this self-paced project to build a more personal connection to software engineering
 and game development.
 
+I am building it in **Godot** and recently started using **Git** to track my work.
+
 ## Project Goal
 The goal for sloim is to create a simple **jump'n'run** game.
 Its main feature will be a **grappling hook mechanic** that allows the player to swing and maintain speed
 across  *hopefully* 10 different levels.
 
-I am building it in **Godot** and recently started using **Git** to track my work.
 
 ## How to Run
 If anyone is curious enough and wants to look inside:
