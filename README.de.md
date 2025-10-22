@@ -41,3 +41,8 @@ Ich versuche noch immer die grundlegende Bewegungssteurung zu überarbeiten, da 
 Methoden von Godot erstmal fernhalten möchte. Ich will diese Probleme nutzen um mehr zu lernen!
 Das bietet zwar mehr Herausforderungen aber mein Ziel ist es zu lernen.
 **Fokus** liegt als nächstes auf dem ungenauen Gefühl von Bewegungen und das seltsame Sprungverhalten.
+
+
+## Lizenz
+
+Projekt steht unter der MIT Lizenz - siehe [LICENSE](LICENSE) 
