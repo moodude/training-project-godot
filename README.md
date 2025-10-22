@@ -49,3 +49,6 @@ But its quite hard sometimes.
 Jumping is still not working how it is supposed to.
  
 
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
