@@ -15,7 +15,7 @@ public partial class JumpState: IEntityState
 	{
 		if (entity.IsOnGround && entity.Velocity.Y >= 0)
 		{
-			GD.Print($"[JumpState] Detected ground. Velocity.Y={entity.Velocity.Y}");
+			//GD.Print($"[JumpState] Detected ground. Velocity.Y={entity.Velocity.Y}");
 			return new GroundState();
 		}
 
@@ -24,7 +24,7 @@ public partial class JumpState: IEntityState
 		vel.Y += entity.CurrentGravity * (float)delta;
 		entity.Velocity = vel;
 		
-		 GD.Print($"[JumpState] Gravity applied. VelY={entity.Velocity.Y}, Gravity={entity.CurrentGravity}");
+		 //GD.Print($"[JumpState] Gravity applied. VelY={entity.Velocity.Y}, Gravity={entity.CurrentGravity}");
 
 		return this;
 	}

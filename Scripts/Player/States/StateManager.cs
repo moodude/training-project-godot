@@ -59,7 +59,7 @@ public partial class StateManager
         }
         if (entityCurrentState != nextState)
         {
-            GD.Print($"STATE CHANGE: {entityCurrentState.GetType().Name} → {nextState.GetType().Name}");
+            //GD.Print($"STATE CHANGE: {entityCurrentState.GetType().Name} → {nextState.GetType().Name}");
             SetState(nextState);
         }
     }

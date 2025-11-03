@@ -41,9 +41,13 @@ public interface IEntity
     /// </summary>
     bool IsInAir { get; }
     /// <summary>
-    /// Gets whether the entity is on a wall or not.
+    /// Gets whether the entity is detecting Left collision or not.
     /// </summary>
-    bool IsOnWall { get; }
+    bool IsTouchingLeft { get; }
+    /// <summary>
+    /// Gets whether the entity is detecting right collision or not.
+    /// </summary>
+    bool IsTouchingRight { get; }
     /// <summary>
     /// Gets whether the entity is alive.
     /// </summary>

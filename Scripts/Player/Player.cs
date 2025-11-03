@@ -30,7 +30,8 @@ public partial class Player : Node2D, IEntity
     // Example: 'public bool IsOnGround => collidingRays.Contains(rayCastManager.Down);'
     public bool IsOnGround => collidingRays.Contains(rayCastManager.Down);
     public bool IsInAir => !IsOnGround;
-    public bool IsOnWall => collidingRays.Contains(rayCastManager.Left) || collidingRays.Contains(rayCastManager.Right);
+    public bool IsTouchingLeft => collidingRays.Contains(rayCastManager.Left);
+    public bool IsTouchingRight => collidingRays.Contains(rayCastManager.Right);
     public bool IsAlive => CurrentHealth > 0;
     public bool IsDead => CurrentHealth <= 0;
     
@@ -69,7 +70,7 @@ public partial class Player : Node2D, IEntity
         Position += Velocity * (float)delta;
         collidingRays = rayCastManager.GetDirectionRays();
 
-        GD.Print($"[Physics] Pos={Position}, Vel={Velocity}, IsOnGround={IsOnGround}");
+        //GD.Print($"[Physics] Pos={Position}, Vel={Velocity}, IsOnGround={IsOnGround}");
         stateManager.UpdateState(delta);
         //GD.Print($"Velocity: {Velocity}");
         
