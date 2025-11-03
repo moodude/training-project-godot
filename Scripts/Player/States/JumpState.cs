@@ -13,15 +13,18 @@ public partial class JumpState: IEntityState
     }
 	public virtual IEntityState HandleInput(IEntity entity, double delta)
 	{
-		if (entity.IsOnGround)
+		if (entity.IsOnGround && entity.Velocity.Y >= 0)
 		{
+			GD.Print($"[JumpState] Detected ground. Velocity.Y={entity.Velocity.Y}");
 			return new GroundState();
 		}
 
 		
 		var vel = entity.Velocity;
-		vel.Y += entity.CurrentGravity * (float)delta;  
+		vel.Y += entity.CurrentGravity * (float)delta;
 		entity.Velocity = vel;
+		
+		 GD.Print($"[JumpState] Gravity applied. VelY={entity.Velocity.Y}, Gravity={entity.CurrentGravity}");
 
 		return this;
 	}
