@@ -48,6 +48,7 @@ public partial class StateManager
     {
         if (entityCurrentState is null)
         {
+            GD.PrintErr("UpdateState: entityCurrentState is null");
             return;
         }
         var nextState = entityCurrentState.HandleInput(entity, delta);
@@ -58,6 +59,7 @@ public partial class StateManager
         }
         if (entityCurrentState != nextState)
         {
+            GD.Print($"STATE CHANGE: {entityCurrentState.GetType().Name} → {nextState.GetType().Name}");
             SetState(nextState);
         }
     }

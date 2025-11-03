@@ -19,9 +19,9 @@ public partial class Player : Node2D, IEntity
 
     public float SpeedMulti { get; set; } = 150;
 
-    public float JumpForce { get; set; } = 500;
+    public float JumpForce { get; set; } = 300;
 
-    public float BaseGravity { get; set; } = 50;
+    public float BaseGravity { get; set; } = 200;
     public float CurrentGravity { get; set; }
 
     // Expression-bodied properties are shorthand for simple get methods
@@ -68,6 +68,8 @@ public partial class Player : Node2D, IEntity
     {
         Position += Velocity * (float)delta;
         collidingRays = rayCastManager.GetDirectionRays();
+
+        GD.Print($"[Physics] Pos={Position}, Vel={Velocity}, IsOnGround={IsOnGround}");
         stateManager.UpdateState(delta);
         //GD.Print($"Velocity: {Velocity}");
         

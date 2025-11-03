@@ -11,6 +11,9 @@ public interface IEntity
     /// Gets or sets the jumpforce of the entity.
     /// </summary>
     float JumpForce { get; set; }
+    /// <summary>
+    /// Gets or sets the base gravity of the entity.
+    /// </summary>
     float BaseGravity { get; set; }
     /// <summary>
     /// Gets or sets the gravity value of the entity.
