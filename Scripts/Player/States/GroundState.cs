@@ -8,11 +8,14 @@ public partial class GroundState: IEntityState
     public void Exit(IEntity entity){}
     public void Enter(IEntity entity)
     {
+        GD.Print($"[GroundState] Enter: setting gravity=0, resetting vel.Y");
+
         entity.CurrentGravity = 0;
         var vel = entity.Velocity;
         vel.Y = entity.CurrentGravity;
         entity.Velocity = vel;
-        GD.Print($"entity.Velocity is {entity.Velocity}");
+        
+        GD.Print($"[GroundState] After Enter: Velocity={entity.Velocity}");
     }
     public virtual IEntityState HandleInput(IEntity entity, double delta)
     {
@@ -25,12 +28,11 @@ public partial class GroundState: IEntityState
 
         if (Input.IsActionJustPressed("jump"))
         {
-            GD.Print($"JumpForce: {entity.JumpForce}");  // should be 6000
-        GD.Print($"SpeedMulti: {entity.SpeedMulti}");  // should be 150
-        GD.Print($"Velocity before setting jump: {entity.Velocity}");
+            GD.Print($"[GroundState] Jump pressed. IsOnGround={entity.IsOnGround}");
+            GD.Print($"[GroundState] Before jump: Velocity={entity.Velocity}");
             velocity.Y -= 1* entity.JumpForce;
-         GD.Print($"Velocity after setting jump: {velocity}");
             entity.Velocity = velocity;
+            GD.Print($"[GroundState] After jump: Velocity={entity.Velocity}");
             return new JumpState();
         }
  
@@ -40,14 +42,15 @@ public partial class GroundState: IEntityState
             velocity.X -= 1;
 
         }
-       
+
 
         if (Input.IsActionPressed("mright"))
         {
             velocity.X += 1;
 
         }
-        entity.Velocity = velocity * entity.SpeedMulti;
+        velocity.X *= entity.SpeedMulti;
+        entity.Velocity = velocity;
         return this;
     }
 }
