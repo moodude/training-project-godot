@@ -3,15 +3,15 @@ using System;
 
 public partial class JumpState: IEntityState
 {
-	public void Exit(IEntity entity)
+	public void Exit(IMovementEntity entity)
     {
 		
     }
-    public void Enter(IEntity entity)
+    public void Enter(IMovementEntity entity)
 	{
 		entity.CurrentGravity = entity.BaseGravity;
     }
-	public virtual IEntityState HandleInput(IEntity entity, double delta)
+	public virtual IEntityState HandleInput(IMovementEntity entity, double delta)
 	{
 		if (entity.IsOnGround && entity.Velocity.Y >= 0)
 		{

@@ -10,13 +10,13 @@ public interface IEntityState
     /// Called when the state is exited. Use this to clean up/reset values.
     /// </summary>
     /// <param name="entity">The entity leaving this state.</param>
-    void Exit(IEntity entity);
+    void Exit(IMovementEntity entity);
 
     /// <summary>
     /// Called when the state is entered. Use this to initialize/set up logic or values.
     /// </summary>
     /// <param name="entity">The entity entering this state.</param>
-    void Enter(IEntity entity);
+    void Enter(IMovementEntity entity);
     
     /// <summary>
     /// Handles input and logic for this state and determines whether a state transition is needed or not.
@@ -26,5 +26,5 @@ public interface IEntityState
     /// <returns>
     /// The next <see cref="IEntityState"/> to transition to or <c>null</c> to remain the in current state.
     /// </returns>
-    IEntityState HandleInput(IEntity entity, double delta);
+    IEntityState HandleInput(IMovementEntity entity, double delta);
 }

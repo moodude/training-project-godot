@@ -8,7 +8,7 @@ public partial class StateManager
     #region Fields
 
     private IEntityState entityCurrentState;
-    private IEntity entity;
+    private IMovementEntity entity;
 
     #endregion
 
@@ -21,7 +21,7 @@ public partial class StateManager
     #endregion
 
     #region Constructors
-    public StateManager(IEntity entity)
+    public StateManager(IMovementEntity entity)
     {
         this.entity = entity;
     }

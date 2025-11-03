@@ -2,7 +2,8 @@ using Godot;
 using System;
 using System.Collections.Generic;
 
-public partial class Player : Node2D, IEntity
+
+public partial class Player : Node2D, IMovementEntity
 {
     #region Fields
     private StateManager stateManager;
@@ -93,7 +94,42 @@ public partial class Player : Node2D, IEntity
         GD.Print("Respawn!");
         //Position zu Respawnpoint
     }
+    public void HandleMovement(Vector2 direction, double delta)
+    {
+        var vel = Velocity;
+        vel.X = 0;
+        GD.Print($"{Velocity}");
 
+        if (direction == Vector2.Zero)
+        {
+            vel.X = 0;
+        }
+        else
+        {
+            vel.X = direction.X * SpeedMulti;
+
+
+            if ((direction == Vector2.Left && IsTouchingLeft) || (direction == Vector2.Right && IsTouchingRight))
+            {
+                vel.X = 0;
+            }
+        }   
+
+        Velocity = vel;
+    }
+
+    public void HandleJumping(double delta)
+    {
+        var vel = Velocity;
+        vel.Y -= JumpForce;
+        Velocity = vel;
+    }
+    public void HandleGravity(double delta)
+    {
+        var vel = Velocity;
+        vel.Y += CurrentGravity * (float)delta;
+        Velocity = vel;
+    }
     #endregion
 
     #region Private Methods
