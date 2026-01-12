@@ -97,23 +97,21 @@ public partial class Player : Node2D, IMovementEntity
     public void HandleMovement(Vector2 direction, double delta)
     {
         var vel = Velocity;
-        vel.X = 0;
         GD.Print($"{Velocity}");
-
-        if (direction == Vector2.Zero)
+        // Possible: using Expression-bodied property "CanMoveHorizontaly" to simplify 
+        if (!CanMoveHorizontaly(direction) && IsOnGround)
         {
-            vel.X = 0;
+             vel.X = 0;
         }
         else
         {
             vel.X = direction.X * SpeedMulti;
+        }
 
-
-            if ((direction == Vector2.Left && IsTouchingLeft) || (direction == Vector2.Right && IsTouchingRight))
-            {
-                vel.X = 0;
-            }
-        }   
+        if (IsOnGround && direction == Vector2.Zero)
+        {
+            vel.X = 0;
+        } 
 
         Velocity = vel;
     }
@@ -139,6 +137,17 @@ public partial class Player : Node2D, IMovementEntity
         stateManager.InitializeState(initalState);
     }
 
+    private bool CanMoveHorizontaly(Vector2 dir)
+    {
+        if ((dir == Vector2.Left && !IsTouchingLeft) || (dir == Vector2.Right && !IsTouchingRight))
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
     #endregion
 
 }

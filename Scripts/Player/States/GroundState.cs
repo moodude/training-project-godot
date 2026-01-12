@@ -35,7 +35,7 @@ public partial class GroundState: IEntityState
             return new JumpState();
         }
  
-        velocity.X = 0;
+        
         if (Input.IsActionPressed("mleft"))
         {
             var direction = Vector2.Left;
@@ -51,6 +51,12 @@ public partial class GroundState: IEntityState
 
         }
         
+        if(!(Input.IsActionPressed("mright")) && !(Input.IsActionPressed("mleft")) && !(Input.IsActionJustPressed("jump")) )
+        {
+            entity.HandleMovement(Vector2.Zero, delta);
+        }
+
+
         return this;
     }
 }
