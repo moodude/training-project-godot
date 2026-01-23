@@ -70,7 +70,7 @@ public partial class Player : Node2D, IMovementEntity
     {
         Position += Velocity * (float)delta;
         collidingRays = rayCastManager.GetDirectionRays();
-
+        
         //GD.Print($"[Physics] Pos={Position}, Vel={Velocity}, IsOnGround={IsOnGround}");
         stateManager.UpdateState(delta);
         //GD.Print($"Velocity: {Velocity}");
@@ -99,6 +99,7 @@ public partial class Player : Node2D, IMovementEntity
         var vel = Velocity;
         GD.Print($"{Velocity}");
         // Possible: using Expression-bodied property "CanMoveHorizontaly" to simplify 
+        // Warnung! : Airborne state kann immernoch zu tunneling führen. Andere Lösung oder Airborne specific vorgehen.
         if (!CanMoveHorizontaly(direction) && IsOnGround)
         {
              vel.X = 0;
@@ -149,6 +150,5 @@ public partial class Player : Node2D, IMovementEntity
         }
     }
     #endregion
-
 }
 
