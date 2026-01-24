@@ -1,9 +1,9 @@
 [gd_scene load_steps=8 format=3 uid="uid://du6ebd2wpwyr"]
 
-[ext_resource type="Script" uid="uid://cgwhq73ujml6n" path="res://Scripts/Player/Player.cs" id="1_qtpms"]
+[ext_resource type="Script" uid="uid://c43uv57lntu0s" path="res://Scripts/Player/Player.cs" id="1_qtpms"]
 [ext_resource type="PackedScene" uid="uid://c5x05kpjkukll" path="res://Scenes/hook.tscn" id="5_2nia0"]
-[ext_resource type="Script" uid="uid://be2d5p85pk3mp" path="res://Scenes/HookRadius.cs" id="6_nansh"]
-[ext_resource type="Script" uid="uid://bkxtslc3c1won" path="res://Scripts/Player/RayCast/RayCastManager.cs" id="7_74v4k"]
+[ext_resource type="Script" uid="uid://d0dysuk1b1ys8" path="res://Scenes/HookRadius.cs" id="6_nansh"]
+[ext_resource type="Script" uid="uid://ct8qvjhli33nx" path="res://Scripts/Player/RayCast/RayCastManager.cs" id="7_74v4k"]
 
 [sub_resource type="CanvasTexture" id="CanvasTexture_kbuaw"]
 
@@ -26,7 +26,6 @@ scale = Vector2(92.5, 68.5)
 texture = SubResource("CanvasTexture_kbuaw")
 
 [node name="CollisionBox" type="CollisionShape2D" parent="."]
-visible = false
 shape = SubResource("CircleShape2D_03a7t")
 
 [node name="Hook" parent="." instance=ExtResource("5_2nia0")]
