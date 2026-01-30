@@ -9,6 +9,11 @@ public interface IMovementEntity
     float BaseGravity { get; set; }
     float CurrentGravity { get; set; }
 
+    Vector2 MyPosition {get;}
+    CollisionShape2D MyShape {get;}
+
+    
+
     bool IsOnGround { get; }
     bool IsInAir { get; }
     bool IsTouchingLeft { get; }

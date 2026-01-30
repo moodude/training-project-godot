@@ -31,7 +31,7 @@ public partial class SlimeAndMove
             return Vector2.Zero;
         
         }
-        var result = QueryHelper(proposedMotion, node);
+        var result = QueryHelper(proposedMotion, node, movementEntity);
          //early out if no collision
         if(result is null || result.Count == 0)
         {
@@ -39,50 +39,46 @@ public partial class SlimeAndMove
         }
 
         Vector2 normal = (Vector2)result["normal"];
-        float dot = proposedMotion.Dot(normal);
-            
+        float dot = proposedMotion.Dot(normal);     
         if (dot > 0)
         {
             return proposedMotion;
         }
-            
+
         var illegalMotion = dot * normal;
         Vector2 allowedMotion = proposedMotion - illegalMotion;
 
         Vector2 remainingMotion = allowedMotion;
-        
         int maxIterations = 2;
         float minLength = 0.01f;
         for (int i = 0; i < maxIterations && remainingMotion.Length() > minLength; i++)
         {
-            var result2 = QueryHelper(remainingMotion, node);
-            if (result2 is null || result2.Count == 0)
+            GD.Print($"Leftover motion:{remainingMotion.Length()}");
+            GD.Print($"Iteration:{i}");
+            var loopResult = QueryHelper(remainingMotion, node, movementEntity);
+            if (loopResult is null || loopResult.Count == 0)
             {
                 break;
             }
-            Vector2 normal2 = (Vector2)result2["normal"];
-            float dot2 = remainingMotion.Dot(normal2);
+            Vector2 loopNormal = (Vector2)loopResult["normal"];
+            float loopDot = remainingMotion.Dot(loopNormal);
 
-            if (dot2 > 0)
+            if (loopDot > 0)
             {
                 break;
             }
 
-            var illegalMotion2 = dot2 * normal2;
-            Vector2 tangent = new Vector2(-normal2.Y, normal2.X);
-            Vector2 motionAlongTangent = (remainingMotion.Dot(tangent) * tangent) - illegalMotion2;
-            remainingMotion = motionAlongTangent;
+            remainingMotion -= remainingMotion.Dot(loopNormal)* loopNormal;
         }
-        return remainingMotion;
-        
-
-
-
-        
-        
+        return remainingMotion;   
     }
-        //Vector2 tangent = new Vector2(-normal.Y, normal.X);
-        //Vector2 slideMotion = tangent * proposedMotion.Dot(tangent); 
+
+    private void KeepBoundaries()
+    {
+        Vector2 pushLänge = new Vector2(3,3); //ersetze mit 1/3 Playerlength. IMovemententity hat noch keinen Zugang zu Playerlength or PlayerCollisionBox
+
+
+    }
     private void MoveBy(Vector2 moveBy, IMovementEntity movementEntity)
     {
        var node = movementEntity as Node2D;
@@ -103,19 +99,31 @@ public partial class SlimeAndMove
 
     public void Go(IMovementEntity movementEntity, float delta)
     {
-        
+       const float speed = 200f;
+    Vector2 input = Vector2.Zero;
+    input.X = Input.GetActionStrength("mright") - Input.GetActionStrength("mleft");
+    input.Y = Input.GetActionStrength("ui_down") - Input.GetActionStrength("ui_up");
+
+    if (input == Vector2.Zero)
+        return;
+
+    Vector2 desiredMotion = input.Normalized() * speed * delta;
+
+    Vector2 finalMotion = EnforceMotionLaws(desiredMotion, movementEntity);
+    MoveBy(finalMotion, movementEntity); 
     }
 
 #region Helperfunction
-    public Dictionary QueryHelper(Vector2 newMotion, Node2D node)
+    public Dictionary QueryHelper(Vector2 newMotion, Node2D node, IMovementEntity entity)
     {
             var spaceState = node.GetWorld2D().DirectSpaceState;
+            var OriginalShape = entity.MyShape.Shape;
             var shape = new CircleShape2D();
+            shape.Radius = (OriginalShape as CircleShape2D).Radius * entity.MyShape.Scale.X;
             //hardcoded magic number. mach abhänging von Interface oder Entity bitte!
-            shape.Radius = 1;
             PhysicsShapeQueryParameters2D query = new PhysicsShapeQueryParameters2D();
             query.Shape = shape;
-            query.Transform = node.Transform; // start at player position
+            query.Transform = node.Transform * entity.MyShape.Transform; // start at player position
             query.Motion = newMotion;
             //Areas usally used for non-solids, trigger events like damage zones, death planes, checkpoints etc. 
             query.CollideWithAreas = false;

@@ -3,6 +3,8 @@ using System;
 using System.Collections.Generic;
 
 
+
+
 public partial class Player : Node2D, IMovementEntity
 {
     #region Fields
@@ -24,6 +26,9 @@ public partial class Player : Node2D, IMovementEntity
 
     public float BaseGravity { get; set; } = 200;
     public float CurrentGravity { get; set; }
+
+    public Vector2 MyPosition => GlobalPosition;
+    public CollisionShape2D MyShape => GetNode<CollisionShape2D>("CollisionBox"); 
 
     // Expression-bodied properties are shorthand for simple get methods
     // They allow you to directly return a value based on a single expression.
