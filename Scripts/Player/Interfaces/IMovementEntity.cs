@@ -3,6 +3,11 @@ using System;
 
 public interface IMovementEntity
 {
+
+    // TODO: Consider revisiting the IMovementEntity interface design later.
+// Right now it provides just enough info for SlimeAndMove (velocity, position, collision shape),
+// but in the future we might want to separate movement data from decision/input logic.
+// Keep in mind: changes here may affect how states, player input, and SlimeAndMove interact.
     Vector2 Velocity { get; set; }
     float SpeedMulti { get; set; }
     float JumpForce { get; set; }

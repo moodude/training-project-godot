@@ -1,6 +1,8 @@
 using Godot;
 using Godot.Collections;
 using System;
+using System.Diagnostics;
+
 
 
 /// <summary>
@@ -9,72 +11,66 @@ using System;
 /// </summary>
 public partial class SlimeAndMove
 {
+    [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
+
+    struct SweepData
+    {
+        // '?' after the type means it can be null
+        public Vector2? collisionPoint;
+        public float safeMotionMargin;
+        public Vector2? Normal;
+
+        private string GetDebuggerDisplay()
+        {
+            return ToString();
+        }
+        //maybe add a Collider Reference
+
+
+    }
     /// <summary>
     /// Checks for collisions and illegal motions into surfaces and modifies that motion if needed.
     /// </summary>
     /// <param name="proposedMotion">New unvalidated motion request </param>
     /// <param name="movementEntity">Object eines beweglichen Entity</param>
     /// <returns>A Vector2 that is allowed to be followed</returns>
-    private Vector2 EnforceMotionLaws(Vector2 proposedMotion, IMovementEntity movementEntity)
+    private Vector2 EnforceMotionLaws(Vector2 proposedMotion, PhysicsShapeQueryParameters2D query, IMovementEntity entity)
     {
-
-        // TODO next session:
-// - Refine sliding along tangents for corners / multiple collisions
-// - Clean up variable names for clarity (normal2, dot2, motionAlongTangent, etc.)
-// - Verify loop early-exit logic (break vs return) matches intended behavior
-// - Test edge cases: tiny remaining motion, multiple walls, partially inside surfaces
-// - Consider if QueryHelper should allow a “virtual position” for remainingMotion checks
-        var node = movementEntity as Node2D;
-        if(node is null)
+        var node = entity as Node2D;
+        if (node is null)
         {   
             GD.PrintErr($"{nameof(SlimeAndMove)} requires IMovementEntity to be a Node2D");
             return Vector2.Zero;
-        
         }
-        var result = QueryHelper(proposedMotion, node, movementEntity);
-         //early out if no collision
-        if(result is null || result.Count == 0)
+        Vector2 startPosition = entity.MyPosition;
+        GD.Print("=== Start EnforceMotionLaws ===");
+        GD.Print("Entity Pos =", entity.MyPosition);
+        GD.Print("Entity Shape Pos  =", entity.MyShape.GlobalPosition);
+        GD.Print("Query Pos  =", query.Transform.Origin);
+        PhysicsShapeQueryParameters2D sweepQuery = CreateQueryObject(entity, proposedMotion);
+        SweepData Sweep = ShapeSweeper(sweepQuery, node);
+        if (Sweep.Normal is null)
         {
+            GD.Print("I Hit Nothing!");
             return proposedMotion;
         }
-
-        Vector2 normal = (Vector2)result["normal"];
-        float dot = proposedMotion.Dot(normal);     
+        float dot = proposedMotion.Dot((Vector2)Sweep.Normal);
         if (dot > 0)
         {
+            GD.Print("Nothing is in the way!");
             return proposedMotion;
         }
-
-        var illegalMotion = dot * normal;
-        Vector2 allowedMotion = proposedMotion - illegalMotion;
-
-        Vector2 remainingMotion = allowedMotion;
-        int maxIterations = 2;
-        float minLength = 0.01f;
-        for (int i = 0; i < maxIterations && remainingMotion.Length() > minLength; i++)
-        {
-            GD.Print($"Leftover motion:{remainingMotion.Length()}");
-            GD.Print($"Iteration:{i}");
-            var loopResult = QueryHelper(remainingMotion, node, movementEntity);
-            if (loopResult is null || loopResult.Count == 0)
-            {
-                break;
-            }
-            Vector2 loopNormal = (Vector2)loopResult["normal"];
-            float loopDot = remainingMotion.Dot(loopNormal);
-
-            if (loopDot > 0)
-            {
-                break;
-            }
-
-            remainingMotion -= remainingMotion.Dot(loopNormal)* loopNormal;
-        }
-        return remainingMotion;   
+        PhysicsShapeQueryParameters2D loopQuery = CreateQueryObject(entity, proposedMotion);
+        
+        Vector2 finalVector = LoopHelper(loopQuery, node);
+        return finalVector;
     }
 
     private void KeepBoundaries()
     {
+        // TODO: Implement KeepBoundaries to detect overlaps and return a small correction motion.
+// Should check the entity's collision shape at its current position,
+// average normals if multiple overlaps, and return a vector to nudge the player out.
         Vector2 pushLänge = new Vector2(3,3); //ersetze mit 1/3 Playerlength. IMovemententity hat noch keinen Zugang zu Playerlength or PlayerCollisionBox
 
 
@@ -82,6 +78,7 @@ public partial class SlimeAndMove
     private void MoveBy(Vector2 moveBy, IMovementEntity movementEntity)
     {
        var node = movementEntity as Node2D;
+        GD.Print($"I move by : {moveBy}");
        if (node is not null)
         {
             node.GlobalPosition += moveBy;
@@ -106,39 +103,121 @@ public partial class SlimeAndMove
 
     if (input == Vector2.Zero)
         return;
-
+    GD.Print($"Input X = {input.X}, Input Y = {input.Y}");
     Vector2 desiredMotion = input.Normalized() * speed * delta;
-
-    Vector2 finalMotion = EnforceMotionLaws(desiredMotion, movementEntity);
+    PhysicsShapeQueryParameters2D query = CreateQueryObject(movementEntity, desiredMotion);
+    Vector2 finalMotion = EnforceMotionLaws(desiredMotion, query, movementEntity);
     MoveBy(finalMotion, movementEntity); 
     }
 
 #region Helperfunction
-    public Dictionary QueryHelper(Vector2 newMotion, Node2D node, IMovementEntity entity)
-    {
-            var spaceState = node.GetWorld2D().DirectSpaceState;
-            var OriginalShape = entity.MyShape.Shape;
-            var shape = new CircleShape2D();
-            shape.Radius = (OriginalShape as CircleShape2D).Radius * entity.MyShape.Scale.X;
-            //hardcoded magic number. mach abhänging von Interface oder Entity bitte!
-            PhysicsShapeQueryParameters2D query = new PhysicsShapeQueryParameters2D();
-            query.Shape = shape;
-            query.Transform = node.Transform * entity.MyShape.Transform; // start at player position
-            query.Motion = newMotion;
-            //Areas usally used for non-solids, trigger events like damage zones, death planes, checkpoints etc. 
-            query.CollideWithAreas = false;
-            //Bodies usally used for Solids like walls, floors, enemies etc. 
-            query.CollideWithBodies = true;
+   
 
-            var result = spaceState.GetRestInfo(query); 
-
-            return result;
+    public Vector2  LoopHelper (PhysicsShapeQueryParameters2D loopQuery, Node2D node)
+    { 
+        
+        Vector2 startPosition = loopQuery.Transform.Origin;
+        Vector2 intendedMotion = loopQuery.Motion;
+        Vector2 nextPosition = startPosition;
+        
+        float MinLength = 0.1f;
+        int MaxIterations = 3;
+        for (int i = 0; intendedMotion.LengthSquared()  > (MinLength*MinLength) && i < MaxIterations; i ++)
+        {
+           // GD.Print($"--- Iteration {i} ---");
+           // GD.Print("Loop pos       = ", startPosition);
+           // GD.Print("LoopQuery Position     = ", loopQuery.Transform.Origin);
+           // GD.Print("LoopQuery motion = ", loopQuery.Motion);
+            SweepData loopSweep = ShapeSweeper(loopQuery, node); 
+            if (loopSweep.Normal is null)
+            {
+                return intendedMotion;
+            }
+            float loopdot = intendedMotion.Dot((Vector2)loopSweep.Normal);
+            
+            Vector2 blockedMotion = loopdot * (Vector2)loopSweep.Normal;
+            intendedMotion = intendedMotion - blockedMotion;
+            nextPosition += (intendedMotion);
+            loopQuery.Transform = new Transform2D(0, nextPosition);
+            loopQuery.Motion = intendedMotion;
+             
+        }
+        Vector2 finalMotion = nextPosition - startPosition;
+        return finalMotion;
     }
 
-    public void LoopHelper (Vector2 motionInQuestion, Dictionary results)
+    private SweepData ShapeSweeper (PhysicsShapeQueryParameters2D sweepQuery, Node2D node)
     {
-      //maybe put the loop here. maybe not lol
-    }
+        
+        var spaceState2D = node.GetWorld2D().DirectSpaceState;
+        Dictionary restingOverlapData = spaceState2D.GetRestInfo(sweepQuery);
+        GD.Print("[RestCheck] Count =", restingOverlapData?.Count);
+        if (restingOverlapData is not null && restingOverlapData.Count > 0)//checking if already overlapping - early out
+        {
+            GD.Print("[RestCheck] Point =", restingOverlapData?["point"]);
+            GD.Print("[RestCheck] Normal =", restingOverlapData?["normal"]);
+            return new SweepData
+            {
+                collisionPoint = (Vector2)restingOverlapData["point"],
+                safeMotionMargin = 0, //no safe motion since overlap detected
+                Normal = (Vector2)restingOverlapData["normal"],
+            };
+        }
+
+        float[] motionCastData = spaceState2D.CastMotion(sweepQuery);
+        GD.Print("[Cast] ratio =", motionCastData[0]);
+        GD.Print("[Cast] motion =", sweepQuery.Motion);
+        GD.Print("[Cast] origin =", sweepQuery.Transform.Origin);
+        Vector2 startPosition = sweepQuery.Transform.Origin;
+        if (motionCastData[0] == 1)//no overlap detected in given motion - early out
+        {
+            return new SweepData
+            {
+                collisionPoint = null, //no collision along the path
+                safeMotionMargin = 1,  //full motion is valid
+                Normal = null, //no surface interaction -> no normal
+            };
+        }
+        Vector2 endCollisionPoint = startPosition + (motionCastData[0] * sweepQuery.Motion);//is the CastMotion data normalized or not. AWARE!!
+        PhysicsShapeQueryParameters2D restQuery = new();
+        restQuery.Shape = sweepQuery.Shape;
+        restQuery.Transform = new Transform2D(0, endCollisionPoint);
+        restQuery.Motion = Vector2.Zero;
+        restQuery.CollideWithAreas = sweepQuery.CollideWithAreas;
+        restQuery.CollideWithBodies = sweepQuery.CollideWithBodies;
+        restingOverlapData = spaceState2D.GetRestInfo(restQuery);
+        GD.Print("[RestAfterCast] Count =", restingOverlapData?.Count);
+        GD.Print("[End] collisionPoint =", restingOverlapData?["point"]);
+        GD.Print("[End] normal =", restingOverlapData?["normal"]);
+        if (restingOverlapData is null || restingOverlapData.Count == 0)
+        {
+            return new SweepData
+            {
+                collisionPoint = null, //no collision along the path
+                safeMotionMargin = 1,  //full motion is valid
+                Normal = null, //no surface interaction -> no normal
+            };
+        }
+        return new SweepData
+        {
+            collisionPoint = (Vector2)restingOverlapData["point"],
+            safeMotionMargin = motionCastData[0],
+            Normal = (Vector2)restingOverlapData["normal"],
+        };
+    } 
+
+    private PhysicsShapeQueryParameters2D CreateQueryObject(IMovementEntity entity, Vector2 motion)
+    {
+        PhysicsShapeQueryParameters2D query = new PhysicsShapeQueryParameters2D();
+        query.Shape = entity.MyShape.Shape;
+        query.Transform = new Transform2D(0, entity.MyShape.GlobalPosition);
+        query.Motion = motion;
+        //Areas usally used for non-solids, trigger events like damage zones, death planes, checkpoints etc. 
+        query.CollideWithAreas = false;
+        //Bodies usally used for Solids like walls, floors, enemies etc. 
+        query.CollideWithBodies = true;
+        return query;
+    }  
 #endregion 
 }
 

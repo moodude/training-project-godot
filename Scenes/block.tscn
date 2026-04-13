@@ -1,6 +1,6 @@
 [gd_scene load_steps=4 format=3 uid="uid://dx7f0sqf6cltl"]
 
-[ext_resource type="Script" path="res://Scripts/debug/block.cs" id="1_2qlf6"]
+[ext_resource type="Script" uid="uid://dwsyk71umerhv" path="res://Scripts/debug/block.cs" id="1_2qlf6"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_5thuc"]
 size = Vector2(234, 174)
@@ -8,7 +8,6 @@ size = Vector2(234, 174)
 [sub_resource type="CanvasTexture" id="CanvasTexture_hrilm"]
 
 [node name="Block" type="Node2D"]
-position = Vector2(273, 101)
 script = ExtResource("1_2qlf6")
 metadata/_edit_group_ = true
 

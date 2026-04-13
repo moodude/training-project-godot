@@ -1,0 +1,14 @@
+[gd_scene load_steps=3 format=3 uid="uid://brtmu5cus672n"]
+
+[ext_resource type="Script" uid="uid://ysw8f7dh8103" path="res://Driver.cs" id="1_qq5rr"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_ux2fb"]
+radius = 114.07015
+
+[node name="Driver" type="Node2D"]
+script = ExtResource("1_qq5rr")
+
+[node name="CharacterBody2D" type="CharacterBody2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D"]
+shape = SubResource("CircleShape2D_ux2fb")
