@@ -43,10 +43,10 @@ public partial class SlimeAndMove
             return Vector2.Zero;
         }
         Vector2 startPosition = entity.MyPosition;
-        GD.Print("=== Start EnforceMotionLaws ===");
-        GD.Print("Entity Pos =", entity.MyPosition);
-        GD.Print("Entity Shape Pos  =", entity.MyShape.GlobalPosition);
-        GD.Print("Query Pos  =", query.Transform.Origin);
+        //GD.Print("=== Start EnforceMotionLaws ===");
+        //GD.Print("Entity Pos =", entity.MyPosition);
+       // GD.Print("Entity Shape Pos  =", entity.MyShape.GlobalPosition);
+        //GD.Print("Query Pos  =", query.Transform.Origin);
         PhysicsShapeQueryParameters2D sweepQuery = CreateQueryObject(entity, proposedMotion);
         SweepData Sweep = ShapeSweeper(sweepQuery, node);
         if (Sweep.Normal is null)
@@ -57,7 +57,6 @@ public partial class SlimeAndMove
         float dot = proposedMotion.Dot((Vector2)Sweep.Normal);
         if (dot > 0)
         {
-            GD.Print("Nothing is in the way!");
             return proposedMotion;
         }
         PhysicsShapeQueryParameters2D loopQuery = CreateQueryObject(entity, proposedMotion);
@@ -117,29 +116,40 @@ public partial class SlimeAndMove
     { 
         
         Vector2 startPosition = loopQuery.Transform.Origin;
-        Vector2 intendedMotion = loopQuery.Motion;
+        Vector2 originalMotion = loopQuery.Motion;
         Vector2 nextPosition = startPosition;
-        
+        Vector2 remainingMotion = originalMotion;
+        GD.Print($"Before Loop starts position is at : {loopQuery.Transform}");
         float MinLength = 0.1f;
         int MaxIterations = 3;
-        for (int i = 0; intendedMotion.LengthSquared()  > (MinLength*MinLength) && i < MaxIterations; i ++)
+        for (int i = 0; remainingMotion.LengthSquared()  > (MinLength*MinLength) && i < MaxIterations; i ++)
         {
-           // GD.Print($"--- Iteration {i} ---");
-           // GD.Print("Loop pos       = ", startPosition);
-           // GD.Print("LoopQuery Position     = ", loopQuery.Transform.Origin);
-           // GD.Print("LoopQuery motion = ", loopQuery.Motion);
             SweepData loopSweep = ShapeSweeper(loopQuery, node); 
             if (loopSweep.Normal is null)
             {
-                return intendedMotion;
+                nextPosition += remainingMotion;
+                break;
             }
-            float loopdot = intendedMotion.Dot((Vector2)loopSweep.Normal);
+            Vector2 normal = (Vector2)loopSweep.Normal;
+            float margin = loopSweep.safeMotionMargin;
+
+
+            Vector2 safeTravelMotion = remainingMotion * margin;
+            nextPosition += safeTravelMotion;
+           
+            Vector2 leftoverMotion = remainingMotion - safeTravelMotion;
+
+            float dot = leftoverMotion.Dot(normal);
             
-            Vector2 blockedMotion = loopdot * (Vector2)loopSweep.Normal;
-            intendedMotion = intendedMotion - blockedMotion;
-            nextPosition += (intendedMotion);
+            Vector2 blockedMotion = dot * normal;
+
+            remainingMotion = leftoverMotion - blockedMotion;
+            
+
+            
             loopQuery.Transform = new Transform2D(0, nextPosition);
-            loopQuery.Motion = intendedMotion;
+            loopQuery.Motion = remainingMotion;
+
              
         }
         Vector2 finalMotion = nextPosition - startPosition;
@@ -148,26 +158,25 @@ public partial class SlimeAndMove
 
     private SweepData ShapeSweeper (PhysicsShapeQueryParameters2D sweepQuery, Node2D node)
     {
-        
+        float epsilon = 1f;
         var spaceState2D = node.GetWorld2D().DirectSpaceState;
         Dictionary restingOverlapData = spaceState2D.GetRestInfo(sweepQuery);
-        GD.Print("[RestCheck] Count =", restingOverlapData?.Count);
+       GD.Print($"sweepQuery Position is : {sweepQuery.Transform}");
         if (restingOverlapData is not null && restingOverlapData.Count > 0)//checking if already overlapping - early out
         {
-            GD.Print("[RestCheck] Point =", restingOverlapData?["point"]);
-            GD.Print("[RestCheck] Normal =", restingOverlapData?["normal"]);
-            return new SweepData
+            GD.Print("Already Colliding!");
+            //!!ALREADY COLLIDING ON START. WHAT IS HAPPENING?
+           SweepData wombo = new SweepData
             {
                 collisionPoint = (Vector2)restingOverlapData["point"],
                 safeMotionMargin = 0, //no safe motion since overlap detected
                 Normal = (Vector2)restingOverlapData["normal"],
             };
+            restingOverlapData.Clear();
+            return wombo;
         }
 
         float[] motionCastData = spaceState2D.CastMotion(sweepQuery);
-        GD.Print("[Cast] ratio =", motionCastData[0]);
-        GD.Print("[Cast] motion =", sweepQuery.Motion);
-        GD.Print("[Cast] origin =", sweepQuery.Transform.Origin);
         Vector2 startPosition = sweepQuery.Transform.Origin;
         if (motionCastData[0] == 1)//no overlap detected in given motion - early out
         {
@@ -178,7 +187,7 @@ public partial class SlimeAndMove
                 Normal = null, //no surface interaction -> no normal
             };
         }
-        Vector2 endCollisionPoint = startPosition + (motionCastData[0] * sweepQuery.Motion);//is the CastMotion data normalized or not. AWARE!!
+        Vector2 endCollisionPoint = startPosition + (motionCastData[0] * sweepQuery.Motion) - (sweepQuery.Motion.Normalized() * epsilon);//is the CastMotion data normalized or not. AWARE!!
         PhysicsShapeQueryParameters2D restQuery = new();
         restQuery.Shape = sweepQuery.Shape;
         restQuery.Transform = new Transform2D(0, endCollisionPoint);
@@ -186,9 +195,7 @@ public partial class SlimeAndMove
         restQuery.CollideWithAreas = sweepQuery.CollideWithAreas;
         restQuery.CollideWithBodies = sweepQuery.CollideWithBodies;
         restingOverlapData = spaceState2D.GetRestInfo(restQuery);
-        GD.Print("[RestAfterCast] Count =", restingOverlapData?.Count);
-        GD.Print("[End] collisionPoint =", restingOverlapData?["point"]);
-        GD.Print("[End] normal =", restingOverlapData?["normal"]);
+        
         if (restingOverlapData is null || restingOverlapData.Count == 0)
         {
             return new SweepData
@@ -198,6 +205,7 @@ public partial class SlimeAndMove
                 Normal = null, //no surface interaction -> no normal
             };
         }
+        
         return new SweepData
         {
             collisionPoint = (Vector2)restingOverlapData["point"],
@@ -210,7 +218,8 @@ public partial class SlimeAndMove
     {
         PhysicsShapeQueryParameters2D query = new PhysicsShapeQueryParameters2D();
         query.Shape = entity.MyShape.Shape;
-        query.Transform = new Transform2D(0, entity.MyShape.GlobalPosition);
+        query.Transform = new Transform2D(0, entity.MyShape.GlobalPosition); 
+        GD.Print($"CreateQueryObject creates query at :{query.Transform} position");
         query.Motion = motion;
         //Areas usally used for non-solids, trigger events like damage zones, death planes, checkpoints etc. 
         query.CollideWithAreas = false;

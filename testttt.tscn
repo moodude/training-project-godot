@@ -1,16 +1,8 @@
-[gd_scene load_steps=3 format=3 uid="uid://c1kb6c4smriem"]
+[gd_scene load_steps=2 format=3 uid="uid://c1kb6c4smriem"]
 
-[ext_resource type="PackedScene" uid="uid://dx7f0sqf6cltl" path="res://Scenes/block.tscn" id="1_cyrb5"]
-[ext_resource type="PackedScene" uid="uid://brtmu5cus672n" path="res://driver.tscn" id="2_fyttp"]
+[ext_resource type="PackedScene" uid="uid://dkqlbhqnhsl2t" path="res://test_dummy.tscn" id="1_f5mdm"]
 
 [node name="Node2D" type="Node2D"]
 
-[node name="Block" parent="." instance=ExtResource("1_cyrb5")]
-position = Vector2(0, 432)
-scale = Vector2(4.89, 0.375)
-
-[node name="Block2" parent="." instance=ExtResource("1_cyrb5")]
-position = Vector2(651, 257)
-
-[node name="Driver" parent="." instance=ExtResource("2_fyttp")]
-position = Vector2(111, 317)
+[node name="TestDummy" parent="." instance=ExtResource("1_f5mdm")]
+position = Vector2(523, 169)
