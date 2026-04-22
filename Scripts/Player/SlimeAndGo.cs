@@ -1,26 +1,41 @@
 using Godot;
+using Godot.Collections;
 using System;
+using System.Diagnostics;
+
 
 
 
 public partial class SlimeAndGo : Node
 {
+#region Struct
+	    struct SweepData
+    {
+        // '?' after the type means it can be null
+        public Vector2? collisionPoint;
+        public float safeMotionMargin;
+        public Vector2? Normal;
+
+    }
+#endregion
 #region Main
 
 
 	public void Test(IMovementEntity testEntity, float delta)
 	{
+		Node2D node = testEntity as Node2D;
 		PhysicsShapeQueryParameters2D testquery = CreateQuery(testEntity);
 
-		GD.Print($@"
-		[DATA von QUERY]
-	My Position is at : {testquery.Transform.Origin}
-	My Velocity is : {testquery.Motion}
-	My Shape is : {testquery.Shape}
-		");
+		//GD.Print($@"
+		//[DATA von QUERY]
+	//My Position is at : {testquery.Transform.Origin}
+	//My Velocity is : {testquery.Motion}
+	//My Shape is : {testquery.Shape}
+	//	");
 
 		Vector2 TestVelocity = CreateInitialVector(testquery, testEntity, delta);
-		GD.Print($"TestVelocity = {TestVelocity}");
+		SweepData LOL = ShapeSweeper(testquery, node);
+		//GD.Print($"TestVelocity = {TestVelocity}");
 		ApplyVector(TestVelocity, testEntity);
 	}
 	public void Move(Vector2 inputVector, IMovementEntity callingEntity, float delta)
@@ -98,8 +113,46 @@ private PhysicsShapeQueryParameters2D CreateQuery (IMovementEntity callingEntity
 
 			// TODO: create debug tests for query output (static, small motion, edge cases)
 			// verify what PhysicsShapeQueryParameters2D actually represents in space
+			//static and small motion test = values of variables are fine. no unexpected behavior at early point 22.04
 
 		return originalQuery;
+	}
+
+private SweepData ShapeSweeper(PhysicsShapeQueryParameters2D originalQuery, Node2D node)
+	{
+		var spaceState2D = node.GetWorld2D().DirectSpaceState;
+		Dictionary restResultAtStart = spaceState2D.GetRestInfo(originalQuery);
+		if(restResultAtStart.Count != 0)
+		{
+		GD.Print($@"At resting Point
+		Collision Point is : {restResultAtStart["point"]}
+		Querys Shape Data is : {restResultAtStart["shape"]}
+		Surface Normal is : {restResultAtStart["normal"]}
+		Collider ID is : {restResultAtStart["collider_id"]}
+
+		 ");
+		 ulong colliderID = (ulong)restResultAtStart["collider_id"];
+		 var collider = InstanceFromId(colliderID);
+		GD.Print(collider);
+		}
+		
+		//resting postiton overlap check
+		//castMotion check for given query.motion
+		//castMotion from new() position, motion
+		//resting position overlap check
+
+
+
+
+
+
+		
+		return new SweepData
+		{
+			collisionPoint = Vector2.Zero,
+       		safeMotionMargin = 0.0f,
+        	Normal = Vector2.Zero,
+		};
 	}
 #endregion
 }

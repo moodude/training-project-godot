@@ -36,9 +36,9 @@ public partial class TestDummy : Node2D, IMovementEntity
 		tester = new SlimeAndGo();
 		SpeedMulti = 100f;
 		JumpForce = 20f;
-		GD.Print($"My position is : {MyPosition}");
-		GD.Print($"My velocity is : {(Vector2)Velocity}");
-		GD.Print($"My shape is : {MyShape.Shape}");
+		//GD.Print($"My position is : {MyPosition}");
+		//GD.Print($"My velocity is : {(Vector2)Velocity}");
+		//GD.Print($"My shape is : {MyShape.Shape}");
 
 	}
     public override void _PhysicsProcess(double delta)

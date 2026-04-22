@@ -15,11 +15,9 @@ metadata/_edit_group_ = true
 collision_mask = 6
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
-position = Vector2(119, 90)
 shape = SubResource("RectangleShape2D_5thuc")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 modulate = Color(0.180392, 0.14902, 0.313726, 1)
-position = Vector2(117.75, 89.25)
 scale = Vector2(236.5, 179.5)
 texture = SubResource("CanvasTexture_hrilm")
