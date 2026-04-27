@@ -11,6 +11,8 @@ script = ExtResource("1_qj50o")
 [node name="CharacterBody2D" type="CharacterBody2D" parent="."]
 collision_layer = 0
 slide_on_ceiling = false
+floor_stop_on_slope = false
+floor_block_on_wall = false
 platform_floor_layers = 4294967040
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D"]

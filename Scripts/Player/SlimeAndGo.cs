@@ -125,7 +125,7 @@ private SweepData ShapeSweeper(PhysicsShapeQueryParameters2D originalQuery, Node
 		PhysicsShapeQueryParameters2D sweeperQuery = new();
 		///resting position overlap check
 		Dictionary restResultAtStart = spaceState2D.GetRestInfo(originalQuery);
-		if(restResultAtStart.Count != 0) //might throw null reference or crash if null <- test if nullcheck needed? 
+		if(restResultAtStart.Count > 0) //might throw null reference or crash if null <- test if nullcheck needed? 
 		{
 	//		GD.Print($@"At resting is a collision:
 	//	Collision Point is : {restResultAtStart["point"]}
@@ -136,7 +136,7 @@ private SweepData ShapeSweeper(PhysicsShapeQueryParameters2D originalQuery, Node
 	//		ulong colliderID = (ulong)restResultAtStart["collider_id"];
 	//		var collider = InstanceFromId(colliderID);
 	//		GD.Print(collider);
-
+			GD.Print("EARLY REST HIT");
 			return new SweepData
 			{
 				collisionPoint = (Vector2)restResultAtStart["point"],	
@@ -153,37 +153,36 @@ private SweepData ShapeSweeper(PhysicsShapeQueryParameters2D originalQuery, Node
 		GD.Print($"startPosition : {startPosition}");
 		var endPosition = startPosition + originalQuery.Motion;
 		GD.Print($"end position without collision :{endPosition}");
-		if (Mathf.IsEqualApprox(motionCast[0],1f)) //100% of motion 
+		if (motionCast[0] == 1f ) //100% of motion 
 		{
 			GD.Print("Motion Cast detected no collision");
-			return new SweepData
-			{
-				collisionPoint = null,
-				safeMotionMargin = 1,
-				Normal = null
-			};
+			
 		}
 		
+		{
+		//TODO Why do we never get to this part?
 		//castMotion from new() position, motion
-			GD.Print("Motion Cast detected a collision");
-			endPosition = startPosition + motionCast[0] * originalQuery.Motion;
-			GD.Print($"end position with collision :{endPosition}");
-			Vector2 endCollisionPoint = startPosition + (motionCast[0] + float.Epsilon) * originalQuery.Motion;
-			GD.Print($"end Collision Point : {endCollisionPoint}");
-			sweeperQuery.Shape = originalQuery.Shape;
-        	sweeperQuery.Transform = new Transform2D(0, endCollisionPoint);
-        	sweeperQuery.Motion = Vector2.Zero;
-        	sweeperQuery.CollideWithAreas = originalQuery.CollideWithAreas;
-        	sweeperQuery.CollideWithBodies = originalQuery.CollideWithBodies;
+		GD.Print("Motion Cast detected a collision");
+		endPosition = startPosition + motionCast[0] * originalQuery.Motion;
+		GD.Print($"end position with collision :{endPosition}");
+		Vector2 endCollisionPoint = startPosition + (motionCast[0] + 0.01f) * originalQuery.Motion;
+		GD.Print($"end Collision Point : {endCollisionPoint}");
+		sweeperQuery.Shape = originalQuery.Shape;
+        sweeperQuery.Transform = new Transform2D(0, endCollisionPoint);
+        sweeperQuery.Motion = Vector2.Zero;
+        sweeperQuery.CollideWithAreas = originalQuery.CollideWithAreas;
+        sweeperQuery.CollideWithBodies = originalQuery.CollideWithBodies;
 			//resting position overlap check at the end
-			Dictionary restResultAtEnd = spaceState2D.GetRestInfo(sweeperQuery);
-			if(restResultAtEnd.Count != 0)
+			GD.Print("Before GetRestInfo");
+		Dictionary restResultAtEnd = spaceState2D.GetRestInfo(sweeperQuery);
+		GD.Print("After GetRestInfo");
+			if(restResultAtEnd.Count > 0)
 			{
 
 				return new SweepData
 				{
 					collisionPoint = (Vector2)restResultAtEnd["point"],	
-					safeMotionMargin = 0,
+					safeMotionMargin = motionCast[0],
 					Normal = (Vector2)restResultAtEnd["normal"]
 				};
 			}
@@ -191,11 +190,12 @@ private SweepData ShapeSweeper(PhysicsShapeQueryParameters2D originalQuery, Node
 			{
 				return new SweepData
 				{
-					collisionPoint = (Vector2)restResultAtEnd["point"],
-					safeMotionMargin = motionCast[0],
-					Normal = (Vector2)restResultAtEnd["normal"]
+					collisionPoint = null,
+					safeMotionMargin = 1,
+					Normal = null
 				};
-			}
+			}	
+		}
 		
 	}
 #endregion
