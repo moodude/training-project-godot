@@ -37,7 +37,8 @@ public partial class SlimeAndGo : Node
 		Vector2 TestVelocity = CreateInitialVector(testquery, testEntity, delta);
 		SweepData LOL = ShapeSweeper(testquery, node);
 		//GD.Print($"TestVelocity = {TestVelocity}");
-		ApplyVector(TestVelocity, testEntity);
+		Vector2 emptyVector = GetValidVector(TestVelocity, testEntity);
+		ApplyVector(emptyVector, testEntity);
 	}
 	public void Move(Vector2 inputVector, IMovementEntity callingEntity, float delta)
 	{
@@ -52,17 +53,35 @@ public partial class SlimeAndGo : Node
 		SetFlags();//set flags for states
 	}
 	
-	private Vector2 GetValidVector(Vector2 initialVector)
+	private Vector2 GetValidVector(Vector2 initialVector, IMovementEntity entity)
 	{
+		var node = entity as Node2D;
+		//nullcheck?
+
+		PhysicsShapeQueryParameters2D initialQuery = CreateQuery(entity);
+		SweepData initialSweep = ShapeSweeper(initialQuery, node);
+		if (initialSweep.Normal is null)
+		{
+			//GD.Print("initialSweep = No Collision in the way");
+			GD.Print($"validVector before collision: {initialVector}");
+			return initialVector;
+		}
+		float dot = initialVector.Dot((Vector2)initialSweep.Normal);
+		//GD.Print($"dot product is : {dot}");
+		if (dot > 0)
+		{
+			//GD.Print("Moving Away from Collision Surface!");
+			return initialVector;	
+		}
+
+
 		//make a valid vector:
 		//check for collisions and remove vector into collision surface
 		//remaining vector along the surface 
 		//check for collisions along remaining vector
 		//return valid vector
-		Vector2 validVector = Vector2.Zero;
-
-
-
+		Vector2 validVector = loopSweep(initialQuery, node);
+		GD.Print($"valid vector is : {validVector}");
 
 		return validVector;
 	}
@@ -136,7 +155,7 @@ private SweepData ShapeSweeper(PhysicsShapeQueryParameters2D originalQuery, Node
 	//		ulong colliderID = (ulong)restResultAtStart["collider_id"];
 	//		var collider = InstanceFromId(colliderID);
 	//		GD.Print(collider);
-			GD.Print("EARLY REST HIT");
+	//		GD.Print("EARLY REST HIT");
 			return new SweepData
 			{
 				collisionPoint = (Vector2)restResultAtStart["point"],	
@@ -148,34 +167,37 @@ private SweepData ShapeSweeper(PhysicsShapeQueryParameters2D originalQuery, Node
 		
 		///castMotion check for given query.motion
 		float[] motionCast = spaceState2D.CastMotion(originalQuery);
-		GD.Print($"Motion Cast Ergebnis = {motionCast[0]}");
+		//GD.Print($"Motion Cast Ergebnis = {motionCast[0]}");
 		var startPosition = originalQuery.Transform.Origin;
-		GD.Print($"startPosition : {startPosition}");
+		//GD.Print($"startPosition : {startPosition}");
 		var endPosition = startPosition + originalQuery.Motion;
-		GD.Print($"end position without collision :{endPosition}");
+		//GD.Print($"end position without collision :{endPosition}");
 		if (motionCast[0] == 1f ) //100% of motion 
 		{
-			GD.Print("Motion Cast detected no collision");
-			
+			//GD.Print("Motion Cast detected no collision");
+			return new SweepData
+				{
+					collisionPoint = null,
+					safeMotionMargin = 1,
+					Normal = null
+				};
 		}
-		
+		else
 		{
-		//TODO Why do we never get to this part?
 		//castMotion from new() position, motion
-		GD.Print("Motion Cast detected a collision");
 		endPosition = startPosition + motionCast[0] * originalQuery.Motion;
-		GD.Print($"end position with collision :{endPosition}");
+		//GD.Print($"end position with collision :{endPosition}");
 		Vector2 endCollisionPoint = startPosition + (motionCast[0] + 0.01f) * originalQuery.Motion;
-		GD.Print($"end Collision Point : {endCollisionPoint}");
+		//GD.Print($"end Collision Point : {endCollisionPoint}");
 		sweeperQuery.Shape = originalQuery.Shape;
         sweeperQuery.Transform = new Transform2D(0, endCollisionPoint);
         sweeperQuery.Motion = Vector2.Zero;
         sweeperQuery.CollideWithAreas = originalQuery.CollideWithAreas;
         sweeperQuery.CollideWithBodies = originalQuery.CollideWithBodies;
 			//resting position overlap check at the end
-			GD.Print("Before GetRestInfo");
+		//	GD.Print("Before GetRestInfo");
 		Dictionary restResultAtEnd = spaceState2D.GetRestInfo(sweeperQuery);
-		GD.Print("After GetRestInfo");
+		//GD.Print("After GetRestInfo");
 			if(restResultAtEnd.Count > 0)
 			{
 
@@ -198,6 +220,51 @@ private SweepData ShapeSweeper(PhysicsShapeQueryParameters2D originalQuery, Node
 		}
 		
 	}
+
+private Vector2 loopSweep (PhysicsShapeQueryParameters2D loopQuery, Node2D node)
+{
+	Vector2 startPosition = loopQuery.Transform.Origin;
+    Vector2 originalMotion = loopQuery.Motion;
+    Vector2 nextPosition = startPosition;
+    Vector2 remainingMotion = originalMotion;
+    //GD.Print($"Before Loop starts position is at : {loopQuery.Transform}");
+    float MinLength = 0.01f;
+    int MaxIterations = 5;
+    for (int i = 0; remainingMotion.LengthSquared()  > (MinLength*MinLength) && i < MaxIterations; i ++)
+    {
+    	SweepData loopSweep = ShapeSweeper(loopQuery, node); 
+        if (loopSweep.Normal is null)
+        {
+        	nextPosition += remainingMotion;
+            break;
+        }
+        Vector2 normal = (Vector2)loopSweep.Normal;
+        float margin = loopSweep.safeMotionMargin;
+		GD.Print($" the safemotionmargin is = {margin}");
+        Vector2 safeTravelMotion = remainingMotion * margin;
+		
+        nextPosition += safeTravelMotion;   
+        Vector2 leftoverMotion = remainingMotion - safeTravelMotion;
+        float dot = leftoverMotion.Dot(normal);
+		   
+		
+		if (dot <  0)
+		{
+			Vector2 blockedMotion = dot * normal;
+			GD.Print($"blocked Motion is : {blockedMotion}");
+        	leftoverMotion -=  blockedMotion; //tangent motion after collision resolution
+												// good place to add scalar modifier for friction or boost
+			GD.Print($"leftover Motion is : {leftoverMotion}");
+		} 
+		remainingMotion = leftoverMotion;
+		GD.Print($"remaining Motion is : {remainingMotion}");
+		loopQuery.Transform = new Transform2D(0, nextPosition);
+       	loopQuery.Motion = remainingMotion;  
+           
+        }
+        Vector2 finalMotion = nextPosition - startPosition;
+        return finalMotion;	
+}
 #endregion
 }
 

@@ -34,7 +34,7 @@ public partial class TestDummy : Node2D, IMovementEntity
 	public override void _Ready()
 	{
 		tester = new SlimeAndGo();
-		SpeedMulti = 100f;
+		SpeedMulti = 500f;
 		JumpForce = 20f;
 		//GD.Print($"My position is : {MyPosition}");
 		//GD.Print($"My velocity is : {(Vector2)Velocity}");
