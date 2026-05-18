@@ -34,8 +34,8 @@ public partial class TestDummy : Node2D, IMovementEntity
 	public override void _Ready()
 	{
 		tester = new SlimeAndGo();
-		SpeedMulti = 500f;
-		JumpForce = 20f;
+		SpeedMulti = 90f;
+		JumpForce = 80f;
 		//GD.Print($"My position is : {MyPosition}");
 		//GD.Print($"My velocity is : {(Vector2)Velocity}");
 		//GD.Print($"My shape is : {MyShape.Shape}");
@@ -44,7 +44,10 @@ public partial class TestDummy : Node2D, IMovementEntity
     public override void _PhysicsProcess(double delta)
     {
 		
-		Velocity = Vector2.Right;
+		Vector2 input = Input.GetVector("mleft", "mright", "jump", "ui_down");
+
+		Velocity = input.Normalized();
+
         tester.Test(this, (float)delta); //this is cleaner and faster then GetNode
 		
 	}

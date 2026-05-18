@@ -6,15 +6,9 @@
 [node name="Node2D" type="Node2D"]
 
 [node name="TestDummy" parent="." instance=ExtResource("1_f5mdm")]
-position = Vector2(331, 352)
+position = Vector2(127, 499)
 
 [node name="Block" parent="." instance=ExtResource("2_cyrb5")]
-position = Vector2(764.99994, 550)
-rotation = 2.6843164
-
-[node name="Block2" parent="." instance=ExtResource("2_cyrb5")]
-position = Vector2(593, 591)
-
-[node name="Block3" parent="." instance=ExtResource("2_cyrb5")]
-position = Vector2(895, 439.99997)
-rotation = -1.3421582
+position = Vector2(824.99994, 596)
+rotation = -0.2443461
+scale = Vector2(9.545, 1.165)

@@ -1,13 +1,24 @@
 using Godot;
 using Godot.Collections;
 using System;
+using System.Collections;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
+
+
+
+//TODO: Do this order:
+
+//Stress test speed (no new features)
+//Add gravity
+//Add friction
+//Add slide toggle
+//Then corners
 
 
 
 
-
-public partial class SlimeAndGo : Node
+public partial class SlimeAndGo : Node2D
 {
 #region Struct
 	    struct SweepData
@@ -20,8 +31,7 @@ public partial class SlimeAndGo : Node
     }
 #endregion
 #region Main
-
-
+	
 	public void Test(IMovementEntity testEntity, float delta)
 	{
 		Node2D node = testEntity as Node2D;
@@ -36,9 +46,11 @@ public partial class SlimeAndGo : Node
 
 		Vector2 TestVelocity = CreateInitialVector(testquery, testEntity, delta);
 		SweepData LOL = ShapeSweeper(testquery, node);
+		//GD.Print($"SafeMotionMargin : {LOL.safeMotionMargin}");
 		//GD.Print($"TestVelocity = {TestVelocity}");
-		Vector2 emptyVector = GetValidVector(TestVelocity, testEntity);
-		ApplyVector(emptyVector, testEntity);
+		Vector2 TestVector = GetValidVector(TestVelocity, testEntity);
+		//GD.Print($"Vector i apply to entity {TestVector}");
+		ApplyVector(TestVector, testEntity);
 	}
 	public void Move(Vector2 inputVector, IMovementEntity callingEntity, float delta)
 	{
@@ -63,14 +75,14 @@ public partial class SlimeAndGo : Node
 		if (initialSweep.Normal is null)
 		{
 			//GD.Print("initialSweep = No Collision in the way");
-			GD.Print($"validVector before collision: {initialVector}");
+			//GD.Print($"validVector before collision: {initialVector}");
 			return initialVector;
 		}
 		float dot = initialVector.Dot((Vector2)initialSweep.Normal);
 		//GD.Print($"dot product is : {dot}");
 		if (dot > 0)
 		{
-			//GD.Print("Moving Away from Collision Surface!");
+			GD.Print("Moving Away from Collision Surface!");
 			return initialVector;	
 		}
 
@@ -80,8 +92,9 @@ public partial class SlimeAndGo : Node
 		//remaining vector along the surface 
 		//check for collisions along remaining vector
 		//return valid vector
+		GD.Print($"INPUT TO SWEEP: {initialQuery.Motion}");
 		Vector2 validVector = loopSweep(initialQuery, node);
-		GD.Print($"valid vector is : {validVector}");
+		//GD.Print($"valid vector is : {validVector}");
 
 		return validVector;
 	}
@@ -120,7 +133,8 @@ private Vector2 CreateInitialVector(PhysicsShapeQueryParameters2D query, IMoveme
 		return initialMotion;
 	}
 
-private PhysicsShapeQueryParameters2D CreateQuery (IMovementEntity callingEntity)
+private PhysicsShapeQueryParameters2D CreateQuery (IMovementEntity callingEntity) //check if i still want to use that!!
+																				  // is called every frame in this setup
 	{
 			PhysicsShapeQueryParameters2D originalQuery = new PhysicsShapeQueryParameters2D();
 			originalQuery.CollideWithAreas = true; //if true, query will take Area2D into account
@@ -230,40 +244,41 @@ private Vector2 loopSweep (PhysicsShapeQueryParameters2D loopQuery, Node2D node)
     //GD.Print($"Before Loop starts position is at : {loopQuery.Transform}");
     float MinLength = 0.01f;
     int MaxIterations = 5;
+	
     for (int i = 0; remainingMotion.LengthSquared()  > (MinLength*MinLength) && i < MaxIterations; i ++)
     {
+		GD.Print($"remainingMotion at the START of the loop: {remainingMotion}");
     	SweepData loopSweep = ShapeSweeper(loopQuery, node); 
-        if (loopSweep.Normal is null)
+        if 	(loopSweep.Normal is null)
         {
         	nextPosition += remainingMotion;
             break;
         }
-        Vector2 normal = (Vector2)loopSweep.Normal;
+		Vector2 normal = (Vector2)loopSweep.Normal;
+		
         float margin = loopSweep.safeMotionMargin;
-		GD.Print($" the safemotionmargin is = {margin}");
-        Vector2 safeTravelMotion = remainingMotion * margin;
 		
-        nextPosition += safeTravelMotion;   
-        Vector2 leftoverMotion = remainingMotion - safeTravelMotion;
-        float dot = leftoverMotion.Dot(normal);
-		   
+		Vector2 safeTravelMotion = remainingMotion * margin;
 		
-		if (dot <  0)
+		Vector2 leftoverMotion = remainingMotion - safeTravelMotion;
+		
+		float dot = leftoverMotion.Dot(normal);
+		Vector2 tangent = leftoverMotion;
+		if (dot < 0) //move into the wall
 		{
 			Vector2 blockedMotion = dot * normal;
-			GD.Print($"blocked Motion is : {blockedMotion}");
-        	leftoverMotion -=  blockedMotion; //tangent motion after collision resolution
-												// good place to add scalar modifier for friction or boost
-			GD.Print($"leftover Motion is : {leftoverMotion}");
-		} 
-		remainingMotion = leftoverMotion;
-		GD.Print($"remaining Motion is : {remainingMotion}");
+			tangent = leftoverMotion - blockedMotion;
+		}
+		
+		remainingMotion = tangent;
+	
+		//UPDATE FOR NEXT ITERATION
 		loopQuery.Transform = new Transform2D(0, nextPosition);
-       	loopQuery.Motion = remainingMotion;  
-           
-        }
-        Vector2 finalMotion = nextPosition - startPosition;
-        return finalMotion;	
+       	loopQuery.Motion = remainingMotion; 
+		GD.Print($"remainingMotion at the END of the loop {remainingMotion}");   
+    }
+    Vector2 finalMotion = nextPosition - startPosition;
+    return finalMotion;	
 }
 #endregion
 }
