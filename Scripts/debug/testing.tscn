@@ -9,7 +9,7 @@
 position = Vector2(341, 260)
 
 [node name="Block" parent="." instance=ExtResource("2_wrpkt")]
-position = Vector2(390, 318)
+position = Vector2(384, 386)
 
 [node name="Block2" parent="." instance=ExtResource("2_wrpkt")]
 position = Vector2(634, 71)

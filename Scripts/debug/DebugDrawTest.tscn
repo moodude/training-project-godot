@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3 uid="uid://bjkffykww3nxv"]
+
+[ext_resource type="Script" uid="uid://duv2lgf7cieau" path="res://DebugDraw.cs" id="1_t0hlq"]
+[ext_resource type="Script" uid="uid://mcfefl38vfwq" path="res://Scripts/debug/Tester.cs" id="2_wv8cc"]
+
+[node name="Main" type="Node2D"]
+
+[node name="DebugDraw" type="Node2D" parent="."]
+script = ExtResource("1_t0hlq")
+
+[node name="Tester" type="Node2D" parent="." node_paths=PackedStringArray("_debug")]
+script = ExtResource("2_wv8cc")
+_debug = NodePath("../DebugDraw")

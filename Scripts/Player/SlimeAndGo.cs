@@ -92,7 +92,7 @@ public partial class SlimeAndGo : Node2D
 		//remaining vector along the surface 
 		//check for collisions along remaining vector
 		//return valid vector
-		GD.Print($"INPUT TO SWEEP: {initialQuery.Motion}");
+		//GD.Print($"INPUT TO SWEEP: {initialQuery.Motion}");
 		Vector2 validVector = loopSweep(initialQuery, node);
 		//GD.Print($"valid vector is : {validVector}");
 
@@ -102,6 +102,7 @@ public partial class SlimeAndGo : Node2D
 	private void ApplyVector(Vector2 validVector, IMovementEntity callingEntity)
 	{
 		var node = callingEntity as Node2D;
+	
 		//GD.Print($"before moving node.GlobalPosition is : {node.GlobalPosition}");
         //GD.Print($"I move by : {validVector}");
        if (node is not null)
@@ -244,10 +245,10 @@ private Vector2 loopSweep (PhysicsShapeQueryParameters2D loopQuery, Node2D node)
     //GD.Print($"Before Loop starts position is at : {loopQuery.Transform}");
     float MinLength = 0.01f;
     int MaxIterations = 5;
+	float epsilon = 0.05f;
 	
     for (int i = 0; remainingMotion.LengthSquared()  > (MinLength*MinLength) && i < MaxIterations; i ++)
     {
-		GD.Print($"remainingMotion at the START of the loop: {remainingMotion}");
     	SweepData loopSweep = ShapeSweeper(loopQuery, node); 
         if 	(loopSweep.Normal is null)
         {
@@ -255,7 +256,52 @@ private Vector2 loopSweep (PhysicsShapeQueryParameters2D loopQuery, Node2D node)
             break;
         }
 		Vector2 normal = (Vector2)loopSweep.Normal;
-		
+/*
+GOAL: Stable kinematic sweep + slide movement (2D)
+
+CURRENT APPROACH:
+- I use iterative shape sweeps (max iterations)
+- Each iteration:
+    1. Sweep along remaining motion
+    2. If collision happens, get ONE collision normal
+    3. Move to safe position (before impact)
+    4. Remove velocity component into the normal (slide)
+    5. Continue with remaining motion
+
+WHAT THIS ALREADY SOLVES:
+- Prevents tunneling via sweeps
+- Allows basic sliding along walls
+- Works for simple single-surface collisions
+
+CURRENT PROBLEMS:
+- High-speed motion can re-hit same surface (sticking/jitter)
+- Corners behave unstable (multiple surfaces)
+- Floating point precision causes repeated collisions
+- Motion may not fully separate from surfaces
+
+WHAT I NEED TO ADD (STABILITY IMPROVEMENTS):
+1. EPSILON OFFSET
+   - Always stop slightly before collision point
+   - Prevents re-colliding due to exact contact
+
+2. SAFE MOVEMENT FRACTION (TOI margin)
+   - Only move up to just before impact
+   - Avoids penetrating or re-triggering collision
+
+3. PROPER POSITION ADVANCEMENT
+   - nextPosition MUST be updated each iteration:
+     nextPosition += safeTravelMotion
+
+4. CONSISTENT MOTION REDUCTION
+   - After collision, remaining motion = tangent (no normal component)
+
+RESULT GOAL:
+- Stable sliding at any speed
+- No sticking on walls
+- Better corner behavior
+- Deterministic iterative convergence within max iterations
+*/
+
         float margin = loopSweep.safeMotionMargin;
 		
 		Vector2 safeTravelMotion = remainingMotion * margin;
@@ -271,11 +317,17 @@ private Vector2 loopSweep (PhysicsShapeQueryParameters2D loopQuery, Node2D node)
 		}
 		
 		remainingMotion = tangent;
-	
+		GD.Print($"length of safe Travel : {safeTravelMotion.Length()}");
+		nextPosition += safeTravelMotion;
+		if(safeTravelMotion.LengthSquared() < epsilon*epsilon)
+		{
+			nextPosition += safeTravelMotion - new Vector2(epsilon, epsilon);		
+		} 
+		
 		//UPDATE FOR NEXT ITERATION
 		loopQuery.Transform = new Transform2D(0, nextPosition);
        	loopQuery.Motion = remainingMotion; 
-		GD.Print($"remainingMotion at the END of the loop {remainingMotion}");   
+		   
     }
     Vector2 finalMotion = nextPosition - startPosition;
     return finalMotion;	
