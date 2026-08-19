@@ -6,8 +6,9 @@
 [node name="Node2D" type="Node2D"]
 
 [node name="TestDummy" parent="." instance=ExtResource("1_f5mdm")]
-position = Vector2(435, 410)
+position = Vector2(190, 376)
 
 [node name="Block" parent="." instance=ExtResource("2_cyrb5")]
-position = Vector2(525.00006, 653)
+position = Vector2(862.00006, 396.00006)
+rotation = -1.5707964
 scale = Vector2(2.215, 1.165)

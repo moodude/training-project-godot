@@ -1,9 +1,6 @@
 using Godot;
 using Godot.Collections;
 using System;
-using System.Collections;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
 
 
 
@@ -20,6 +17,7 @@ using System.Runtime.CompilerServices;
 
 public partial class SlimeAndGo : Node2D
 {
+	private DebugVector debugFinalVector;
 #region Struct
 	    struct SweepData
     {
@@ -29,6 +27,28 @@ public partial class SlimeAndGo : Node2D
         public Vector2? Normal;
 
     }
+
+	public struct DebugVector//maybe add a frame summary beforehand like : player wanted (vector), player got (vector), loop entered: bool 
+	{
+		public Vector2 Start;
+   		public Vector2 End;
+    	public Color Color;
+
+    	public DebugVector(Vector2 start, Vector2 end, Color color)
+    	{
+        	Start = start;
+        	End = end;
+        	Color = color;
+    	}
+
+		//public Vector2 SweepStart;
+		//public Vector2 SweepEnd;
+		//public Vector2? collisionNormal;
+		//public Vector2? collisionPoint;
+		//public Vector2? slidingVector;
+		//public Vector2 remainingMotion;
+		
+	}
 #endregion
 #region Main
 	
@@ -51,6 +71,7 @@ public partial class SlimeAndGo : Node2D
 		Vector2 TestVector = GetValidVector(TestVelocity, testEntity);
 		//GD.Print($"Vector i apply to entity {TestVector}");
 		ApplyVector(TestVector, testEntity);
+		
 	}
 	public void Move(Vector2 inputVector, IMovementEntity callingEntity, float delta)
 	{
@@ -110,6 +131,8 @@ public partial class SlimeAndGo : Node2D
             node.GlobalPosition += validVector;
 			//GD.Print($"after moving node.GlobalPosition is : {node.GlobalPosition}");
         }
+		debugFinalVector = new DebugVector(Vector2.Zero,validVector, Colors.Red);
+		GD.Print($"Final vector: {validVector}");
 	}
 
 	private void SetFlags()
@@ -317,11 +340,11 @@ RESULT GOAL:
 		}
 		
 		remainingMotion = tangent;
-		GD.Print($"length of safe Travel : {safeTravelMotion.Length()}");
+		//GD.Print($"length of safe Travel : {safeTravelMotion.Length()}");
 		nextPosition += safeTravelMotion;
 		if(safeTravelMotion.LengthSquared() < epsilon*epsilon)
 		{
-			nextPosition += safeTravelMotion - new Vector2(epsilon, epsilon);		
+			nextPosition += safeTravelMotion - new Vector2(epsilon, 0);		
 		} 
 		
 		//UPDATE FOR NEXT ITERATION
@@ -331,6 +354,12 @@ RESULT GOAL:
     }
     Vector2 finalMotion = nextPosition - startPosition;
     return finalMotion;	
+}
+
+public DebugVector GetDebugVector()
+{
+	
+	return debugFinalVector;
 }
 #endregion
 }

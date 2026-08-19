@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using System.Collections.Generic;
 
 
 public partial class DebugDraw : Node2D
@@ -15,7 +16,7 @@ struct DebugLine
        public Vector2 _lineEnd;
        public Color _colour;
 
-       //Constructor
+       //Constructor - C# checks those types for me.
        public DebugLine(Vector2 lineStart, Vector2 lineEnd, Color colour)
             {
                 
@@ -34,15 +35,16 @@ public void AddLine(Vector2 vector, Vector2 position, Color colour )
       _lines.Add(new DebugLine(vector,position, colour));
       
         
-        //call for QueueRedraw
+        //call for QueueRedraw - QueueRedraw() requests a future redraw; it doesn't immediately call _Draw(). Godot can perform an initial draw without me explicitly calling QueueRedraw().
        QueueRedraw();
     }
 
-    public override void _Draw()
+    public override void _Draw() //Multiple QueueRedraw() calls can be handled by a single draw pass.
     {
+         GD.Print($"Drawing {_lines.Count} lines");
         foreach(DebugLine debugLine in _lines)
         {
-            DrawLine(debugLine._lineStart, debugLine._lineEnd, debugLine._colour);
+            DrawLine(debugLine._lineStart, debugLine._lineEnd, debugLine._colour, 10f);
         }
        
         _lines.Clear();

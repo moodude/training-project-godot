@@ -31,9 +31,12 @@ public partial class TestDummy : Node2D, IMovementEntity
 	#region Test Values
 
 	private SlimeAndGo tester;
+	private DebugDraw debugDraw;
 	public override void _Ready()
 	{
+		debugDraw = new DebugDraw();
 		tester = new SlimeAndGo();
+		AddChild(debugDraw);
 		SpeedMulti = 90f;
 		JumpForce = 500f;
 		BaseGravity = 60f;
@@ -51,9 +54,10 @@ public partial class TestDummy : Node2D, IMovementEntity
 
 		Velocity = input.Normalized();
         tester.Test(this, (float)delta); //this is cleaner and faster then GetNode
-		Velocity = grav;
-		tester.Test(this, (float)delta);
-		
+		//Velocity = grav;
+		//tester.Test(this, (float)delta);
+		var debugVector = tester.GetDebugVector();
+		debugDraw.AddLine(debugVector.Start, debugVector.End*100f, Colors.Red);
 	}
 
 
