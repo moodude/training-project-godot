@@ -4,6 +4,7 @@ using System;
 
 
 
+
 //TODO: Do this order:
 
 //Stress test speed (no new features)
@@ -17,6 +18,8 @@ using System;
 
 public partial class SlimeAndGo : Node2D
 {
+	private DebugVector debugCollisionNormalVector;
+	private DebugVector debugCollisionPointVector;
 	private DebugVector debugFinalVector;
 #region Struct
 	    struct SweepData
@@ -65,13 +68,13 @@ public partial class SlimeAndGo : Node2D
 	//	");
 
 		Vector2 TestVelocity = CreateInitialVector(testquery, testEntity, delta);
-		SweepData LOL = ShapeSweeper(testquery, node);
-		//GD.Print($"SafeMotionMargin : {LOL.safeMotionMargin}");
-		//GD.Print($"TestVelocity = {TestVelocity}");
+		GD.Print($"TestVelocity = {TestVelocity}");
+		GD.Print($"A BEFORE GetValidVector: {node.GlobalPosition}");
 		Vector2 TestVector = GetValidVector(TestVelocity, testEntity);
-		//GD.Print($"Vector i apply to entity {TestVector}");
+		GD.Print($"B AFTER GetValidVector: {node.GlobalPosition}");
+		GD.Print($"C - TestVector: {TestVector}");
 		ApplyVector(TestVector, testEntity);
-		
+		GD.Print($"D - After ApplyVector: {node.GlobalPosition}");
 	}
 	public void Move(Vector2 inputVector, IMovementEntity callingEntity, float delta)
 	{
@@ -92,7 +95,11 @@ public partial class SlimeAndGo : Node2D
 		//nullcheck?
 
 		PhysicsShapeQueryParameters2D initialQuery = CreateQuery(entity);
+		GD.Print($"POSITION: {node.GlobalPosition}");
+GD.Print($"QUERY MOTION: {initialQuery.Motion}");
+GD.Print($"INITIAL VECTOR: {initialVector}");
 		SweepData initialSweep = ShapeSweeper(initialQuery, node);
+		//GD.Print($"initialSweep.Normal: {initialSweep.Normal}");
 		if (initialSweep.Normal is null)
 		{
 			//GD.Print("initialSweep = No Collision in the way");
@@ -103,7 +110,7 @@ public partial class SlimeAndGo : Node2D
 		//GD.Print($"dot product is : {dot}");
 		if (dot > 0)
 		{
-			GD.Print("Moving Away from Collision Surface!");
+			//GD.Print("Moving Away from Collision Surface!");
 			return initialVector;	
 		}
 
@@ -113,7 +120,7 @@ public partial class SlimeAndGo : Node2D
 		//remaining vector along the surface 
 		//check for collisions along remaining vector
 		//return valid vector
-		//GD.Print($"INPUT TO SWEEP: {initialQuery.Motion}");
+		//GD.Print($"initalQuery.Motion: {initialQuery.Motion}" + $"initialVector: {initialVector}");
 		Vector2 validVector = loopSweep(initialQuery, node);
 		//GD.Print($"valid vector is : {validVector}");
 
@@ -132,7 +139,7 @@ public partial class SlimeAndGo : Node2D
 			//GD.Print($"after moving node.GlobalPosition is : {node.GlobalPosition}");
         }
 		debugFinalVector = new DebugVector(Vector2.Zero,validVector, Colors.Red);
-		GD.Print($"Final vector: {validVector}");
+		//GD.Print($"Final vector: {validVector}");
 	}
 
 	private void SetFlags()
@@ -168,7 +175,7 @@ private PhysicsShapeQueryParameters2D CreateQuery (IMovementEntity callingEntity
 			originalQuery.Motion = callingEntity.Velocity; // here check what velocity does!
 			originalQuery.Shape = callingEntity.MyShape.Shape;
 			originalQuery.Transform = callingEntity.MyShape.GlobalTransform;
-
+			//GD.Print($"Shape:  {callingEntity.MyShape.GlobalTransform.Origin}");
 			
 			// verify what PhysicsShapeQueryParameters2D actually represents in space
 			//static and small motion test = values of variables are fine. no unexpected behavior at early point 22.04
@@ -178,6 +185,7 @@ private PhysicsShapeQueryParameters2D CreateQuery (IMovementEntity callingEntity
 
 private SweepData ShapeSweeper(PhysicsShapeQueryParameters2D originalQuery, Node2D node)
 	{
+		GD.Print($"SWEEP MOTION: {originalQuery.Motion}");
 		var spaceState2D = node.GetWorld2D().DirectSpaceState;
 		PhysicsShapeQueryParameters2D sweeperQuery = new();
 		///resting position overlap check
@@ -279,6 +287,10 @@ private Vector2 loopSweep (PhysicsShapeQueryParameters2D loopQuery, Node2D node)
             break;
         }
 		Vector2 normal = (Vector2)loopSweep.Normal;
+		//GD.Print($"Hit:    {loopSweep.collisionPoint}");
+		debugCollisionPointVector = new DebugVector((Vector2)loopSweep.collisionPoint, (Vector2)loopSweep.collisionPoint, Colors.Green);
+		debugCollisionNormalVector = new DebugVector((Vector2)loopSweep.collisionPoint,  normal, Colors.Blue);
+		//GD.Print($"Normal: {normal}");
 /*
 GOAL: Stable kinematic sweep + slide movement (2D)
 
@@ -328,7 +340,8 @@ RESULT GOAL:
         float margin = loopSweep.safeMotionMargin;
 		
 		Vector2 safeTravelMotion = remainingMotion * margin;
-		
+		//GD.Print("Entity Position plus safeMotionMargin: " + (loopQuery.Transform.Origin + safeTravelMotion));
+		//GD.Print($"Margin: {margin}");
 		Vector2 leftoverMotion = remainingMotion - safeTravelMotion;
 		
 		float dot = leftoverMotion.Dot(normal);
@@ -340,11 +353,12 @@ RESULT GOAL:
 		}
 		
 		remainingMotion = tangent;
-		//GD.Print($"length of safe Travel : {safeTravelMotion.Length()}");
 		nextPosition += safeTravelMotion;
+		//GD.Print("Next Position before epsilon adjustment: " + nextPosition);
 		if(safeTravelMotion.LengthSquared() < epsilon*epsilon)
 		{
-			nextPosition += safeTravelMotion - new Vector2(epsilon, 0);		
+			//(nextPosition += safeTravelMotion - new Vector2(epsilon, 0);		
+			//GD.Print("Next Position after epsilon adjustment: " + nextPosition);
 		} 
 		
 		//UPDATE FOR NEXT ITERATION
@@ -353,6 +367,7 @@ RESULT GOAL:
 		   
     }
     Vector2 finalMotion = nextPosition - startPosition;
+	//GD.Print($"Final Motion after loopSweep: {finalMotion}");
     return finalMotion;	
 }
 
@@ -360,6 +375,16 @@ public DebugVector GetDebugVector()
 {
 	
 	return debugFinalVector;
+}
+
+public DebugVector GetDebugCollisionPoint()
+{
+	return debugCollisionPointVector;
+}
+
+public DebugVector GetDebugCollisionNormal()
+{
+	return debugCollisionNormalVector;
 }
 #endregion
 }

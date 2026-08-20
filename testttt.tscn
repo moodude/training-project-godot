@@ -10,5 +10,5 @@ position = Vector2(190, 376)
 
 [node name="Block" parent="." instance=ExtResource("2_cyrb5")]
 position = Vector2(862.00006, 396.00006)
-rotation = -1.5707964
+rotation = 1.5707964
 scale = Vector2(2.215, 1.165)

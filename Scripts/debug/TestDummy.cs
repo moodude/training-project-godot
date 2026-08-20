@@ -37,7 +37,7 @@ public partial class TestDummy : Node2D, IMovementEntity
 		debugDraw = new DebugDraw();
 		tester = new SlimeAndGo();
 		AddChild(debugDraw);
-		SpeedMulti = 90f;
+		SpeedMulti = 9000f;
 		JumpForce = 500f;
 		BaseGravity = 60f;
 		//GD.Print($"My position is : {MyPosition}");
@@ -47,7 +47,7 @@ public partial class TestDummy : Node2D, IMovementEntity
 	}
     public override void _PhysicsProcess(double delta)
     {
-		
+		//GD.Print($"My global position is : {GlobalPosition}");
 		Vector2 input = Input.GetVector("mleft", "mright", "jump", "ui_down");
 		Vector2 grav = Vector2.Down * BaseGravity * (float)delta;
 
@@ -56,8 +56,13 @@ public partial class TestDummy : Node2D, IMovementEntity
         tester.Test(this, (float)delta); //this is cleaner and faster then GetNode
 		//Velocity = grav;
 		//tester.Test(this, (float)delta);
-		var debugVector = tester.GetDebugVector();
-		debugDraw.AddLine(debugVector.Start, debugVector.End*100f, Colors.Red);
+		var debugFinalVector = tester.GetDebugVector();
+		debugDraw.AddLine(debugFinalVector.Start, debugFinalVector.End*100f, Colors.Red);
+		var debugCollisionPointVector = tester.GetDebugCollisionPoint();
+		debugDraw.AddLine(debugCollisionPointVector.End - GlobalPosition + new Vector2(-10f, 0), debugCollisionPointVector.End - GlobalPosition, debugCollisionPointVector.Color);
+		var debugCollisionNormalVector = tester.GetDebugCollisionNormal();
+		debugDraw.AddLine(Vector2.Zero, debugCollisionNormalVector.End * 50f, Colors.Blue);
+		
 	}
 
 

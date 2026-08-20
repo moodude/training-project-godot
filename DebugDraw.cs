@@ -41,9 +41,13 @@ public void AddLine(Vector2 vector, Vector2 position, Color colour )
 
     public override void _Draw() //Multiple QueueRedraw() calls can be handled by a single draw pass.
     {
-         GD.Print($"Drawing {_lines.Count} lines");
+         //GD.Print($"Drawing {_lines.Count} lines");
         foreach(DebugLine debugLine in _lines)
         {
+        //    GD.Print(
+        //$"Start: {debugLine._lineStart}, " +
+        //$"End: {debugLine._lineEnd}");
+    
             DrawLine(debugLine._lineStart, debugLine._lineEnd, debugLine._colour, 10f);
         }
        
